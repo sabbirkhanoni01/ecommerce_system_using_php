@@ -168,4 +168,20 @@ a:hover {
 }
 
 
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9em;
+}
+
+.register-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+
 

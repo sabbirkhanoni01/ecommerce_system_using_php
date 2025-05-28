@@ -1,38 +1,51 @@
 <?php
-// Initialize error messages
-$username_error = $password_error = "";
+include '../model/db.php';
+session_start();
 
-// Dummy credentials for login (replace with database lookup later)
-$valid_username = "customer1";
-$valid_password = "123456";
+$username_error = $password_error = $final_error = "";
+$username = $password = "";
 
-// Process form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST["username"]);
-    $password = trim($_POST["password"]);
-    $is_valid = true;
+if (isset($_POST["login"])) {
+    $username = trim($_POST["username"] ?? '');
+    $password = trim($_POST["password"] ?? '');
 
-    // Validate username
     if (empty($username)) {
         $username_error = "Username is required.";
-        $is_valid = false;
     }
 
-    // Validate password
     if (empty($password)) {
         $password_error = "Password is required.";
-        $is_valid = false;
     }
 
-    // Authenticate
-    if ($is_valid) {
-        if ($username === $valid_username && $password === $valid_password) {
-            // Login success — redirect to dashboard or home page
-            header("Location: customer_dashboard.php");
-            exit();
+    if (empty($username_error) && empty($password_error)) {
+        $conn = connectDB();
+        $safe_username = mysqli_real_escape_string($conn, $username);
+        $safe_password = mysqli_real_escape_string($conn, $password);
+
+        $sql = "SELECT * FROM registrationtbl WHERE username = '$safe_username' AND password = '$safe_password'";
+        $result = mysqli_query($conn, $sql);
+
+        if ($result && mysqli_num_rows($result) === 1) {
+            $row = mysqli_fetch_assoc($result);
+            $role = $row['role'];
+
+            $_SESSION['username'] = $username;
+            //SUCCESSFUL LOGIN
+
+            if ($role === 'admin') {
+                header("Location: ../view/adminHome.php");
+                exit();
+            } elseif ($role === 'customer') {
+                header("Location: ../view/customerHome.php");
+                exit();
+            } else {
+                $final_error = "Unknown role.";
+            }
         } else {
-            $password_error = "Invalid username or password.";
+            $final_error = "Invalid username or password.";
         }
+
+        mysqli_close($conn);
     }
 }
 ?>
